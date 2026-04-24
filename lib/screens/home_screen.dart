@@ -406,7 +406,7 @@ class HomeScreen extends StatelessWidget {
   Widget _promoItem(String title, String subtitle) {
     return Container(
       width: 280,
-      height: 100,
+      height: 108,
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.blue[700]!]),
         borderRadius: BorderRadius.circular(12),
@@ -431,42 +431,48 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildFlashDeals() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.bolt, color: Colors.blue[600]),
-                  const SizedBox(width: 4),
-                  const Text('Deposito Flash Deals', style: TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text('Dimulai dalam ', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                  _timerBox('41'),
-                  _timerBox('17'),
-                  _timerBox('56'),
-                  const Icon(Icons.expand_less, color: Colors.grey),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _dealItem('Jangan Lewatkan 🔥', 'Penawaran terbatas dimulai pada Senin 7:00 PM', '12 bulan', '7% p.a.', '50 kuota'),
-              const SizedBox(width: 12),
-              _dealItem('Favorit ⭐', 'Suku bunga tinggi untuk masa depan', '6 bulan', '6,5% p.a.', '150 kuota'),
-            ],
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.blue[50],
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // Rata kiri
+      children: [
+        // Baris 1: Icon dan Judul (di atas)
+        Row(
+          children: [
+            Icon(Icons.bolt, color: Colors.blue[600]),
+            const SizedBox(width: 4),
+            const Text('Deposito Flash Deals', 
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12), // Jarak ke timer
+        
+        // Baris 2: Timer (di bawah judul)
+        Row(
+          children: [
+            const Text('Dimulai dalam ', 
+              style: TextStyle(fontSize: 10, color: Colors.grey),
+            ),
+            _timerBox('41'),
+            _timerBox('17'),
+            _timerBox('56'),
+            const Icon(Icons.expand_less, color: Colors.grey),
+          ],
+        ),
+        const SizedBox(height: 16), // Jarak ke deal items
+        
+        // Baris 3: Deal items (2 item)
+        Row(
+          children: [
+            _dealItem('Jangan Lewatkan 🔥', 'Penawaran terbatas dimulai pada Senin 7:00 PM', '12 bulan', '7% p.a.', '50 kuota'),
+            const SizedBox(width: 12),
+            _dealItem('Favorit ⭐', 'Suku bunga tinggi untuk masa depan', '6 bulan', '6,5% p.a.', '150 kuota'),
+          ],
           ),
         ],
       ),
@@ -486,22 +492,34 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _dealItem(String title, String sub, String tenure, String rate, String quota) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-            Text(sub, style: const TextStyle(fontSize: 8, color: Colors.grey)),
-            const SizedBox(height: 12),
-            Text(tenure, style: const TextStyle(fontSize: 10)),
-            Text(rate, style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold, fontSize: 18)),
-            Text(quota, style: const TextStyle(fontSize: 8, color: Colors.grey)),
+  return Expanded(
+    child: Container(
+      padding: const EdgeInsets.all(8), // Kurangi padding
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // Penting!
+        children: [
+          Text(title, 
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(sub, 
+            style: const TextStyle(fontSize: 7, color: Colors.grey),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 6),
+          Text(tenure, style: const TextStyle(fontSize: 9)),
+          Text(rate, 
+            style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          Text(quota, style: const TextStyle(fontSize: 7, color: Colors.grey)),
           ],
         ),
       ),
