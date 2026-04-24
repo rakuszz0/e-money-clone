@@ -68,7 +68,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Rahmat Ilahi',
+                'Matt Shadow',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Row(
