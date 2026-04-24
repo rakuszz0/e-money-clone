@@ -1,43 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/transaction_service.dart';
+import '../services/weather_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final weatherProvider = Provider.of<WeatherService>(context);
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
-                    _buildBalanceCard(context),
-                    const SizedBox(height: 24),
-                    _buildGridActions(context),
-                    const SizedBox(height: 24),
-                    _buildPromoBanners(),
-                    const SizedBox(height: 24),
-                    _buildFlashDeals(),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              weatherProvider.backgroundGradient[0].withValues(alpha: 0.1),
+              Colors.grey[50]!,
             ],
+            stops: const [0.0, 0.4],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      _buildBalanceCard(context),
+                      const SizedBox(height: 24),
+                      _buildGridActions(context),
+                      const SizedBox(height: 24),
+                      _buildPromoBanners(),
+                      const SizedBox(height: 24),
+                      _buildFlashDeals(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final weatherProvider = Provider.of<WeatherService>(context);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -48,21 +64,26 @@ class HomeScreen extends StatelessWidget {
             child: const Icon(Icons.person, color: Colors.white),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Rahmat Ilahi',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Row(
                 children: [
                   Text(
-                    'No. Rekening: 9019 1152 8791',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    weatherProvider.currentTime,
+                    style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.bold, fontSize: 12),
                   ),
-                  SizedBox(width: 4),
-                  Icon(Icons.copy, size: 14, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Icon(weatherProvider.weatherIcon, size: 14, color: Colors.blue[800]),
+                  const SizedBox(width: 4),
+                  Text(
+                    weatherProvider.weatherText,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ],
