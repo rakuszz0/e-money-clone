@@ -1,14 +1,70 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/transaction_service.dart';
 import '../services/weather_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final PageController _pageController = PageController();
+  Timer? _promoTimer;
+  int _currentPromoIndex = 0;
+
+  final List<Map<String, String>> promoBanners = const [
+    {
+      "title": "TOP UP\nE-WALLET",
+      "subtitle": "MENANGKAN\nTOTAL HADIAH\nMILIARAN RUPIAH"
+    },
+    {
+      "title": "DISKON\nSPESIAL",
+      "subtitle": "BELANJA\nLEBIH HEMAT\nHARI INI"
+    },
+    {
+      "title": "CASHBACK\nBESAR",
+      "subtitle": "DAPATKAN\nBONUS CASHBACK\nSETIAP HARI"
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startPromoAutoSlide();
+  }
+
+  void _startPromoAutoSlide() {
+    _promoTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!_pageController.hasClients) return;
+
+      _currentPromoIndex++;
+      if (_currentPromoIndex >= promoBanners.length) {
+        _currentPromoIndex = 0;
+      }
+
+      _pageController.animateToPage(
+        _currentPromoIndex,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _promoTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final weatherProvider = Provider.of<WeatherService>(context);
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: Container(
@@ -17,7 +73,7 @@ class HomeScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              weatherProvider.backgroundGradient[0].withValues(alpha: 0.1),
+              weatherProvider.backgroundGradient[0].withOpacity(0.12),
               Colors.grey[50]!,
             ],
             stops: const [0.0, 0.4],
@@ -38,6 +94,7 @@ class HomeScreen extends StatelessWidget {
                       _buildGridActions(context),
                       const SizedBox(height: 24),
                       _buildPromoBanners(),
+                      _buildPromoIndicators(),
                       const SizedBox(height: 24),
                       _buildFlashDeals(),
                       const SizedBox(height: 40),
@@ -52,8 +109,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// ===============================
+  /// HEADER
+  /// ===============================
   Widget _buildHeader(BuildContext context) {
     final weatherProvider = Provider.of<WeatherService>(context);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -75,10 +136,15 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text(
                     weatherProvider.currentTime,
-                    style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.bold, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.blue[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(weatherProvider.weatherIcon, size: 14, color: Colors.blue[800]),
+                  Icon(weatherProvider.weatherIcon,
+                      size: 14, color: Colors.blue[800]),
                   const SizedBox(width: 4),
                   Text(
                     weatherProvider.weatherText,
@@ -116,8 +182,12 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// ===============================
+  /// BALANCE CARD
+  /// ===============================
   Widget _buildBalanceCard(BuildContext context) {
     final transactionProvider = Provider.of<TransactionProvider>(context);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -137,22 +207,36 @@ class HomeScreen extends StatelessWidget {
             children: [
               const Row(
                 children: [
-                  Text('Total Saldo', style: TextStyle(color: Colors.white, fontSize: 14)),
+                  Text(
+                    'Total Saldo',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
                   SizedBox(width: 8),
-                  Icon(Icons.visibility_outlined, color: Colors.white, size: 16),
+                  Icon(Icons.visibility_outlined,
+                      color: Colors.white, size: 16),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  children: [
-                    Text('Riwayat', style: TextStyle(color: Colors.white, fontSize: 12)),
-                    Icon(Icons.chevron_right, color: Colors.white, size: 14),
-                  ],
+              InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Menu Riwayat ditekan")),
+                  );
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    children: [
+                      Text('Riwayat',
+                          style: TextStyle(color: Colors.white, fontSize: 12)),
+                      Icon(Icons.chevron_right,
+                          color: Colors.white, size: 14),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -160,7 +244,11 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Rp ${transactionProvider.balance.toStringAsFixed(0)}',
-            style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -171,12 +259,23 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     const Row(
                       children: [
-                        Text('Tabungan', style: TextStyle(color: Colors.white, fontSize: 12)),
-                        Icon(Icons.chevron_right, color: Colors.white, size: 14),
+                        Text('Tabungan',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 12)),
+                        Icon(Icons.chevron_right,
+                            color: Colors.white, size: 14),
                       ],
                     ),
-                    Text('Rp ${transactionProvider.balance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    Text('2,5% p.a. cair harian', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 10)),
+                    Text(
+                      'Rp ${transactionProvider.balance.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '2,5% p.a. cair harian',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.8), fontSize: 10),
+                    ),
                   ],
                 ),
               ),
@@ -186,15 +285,19 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text('Deposito', style: TextStyle(color: Colors.white, fontSize: 12)),
-                        Icon(Icons.chevron_right, color: Colors.white, size: 14),
+                        Text('Deposito',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 12)),
+                        Icon(Icons.chevron_right,
+                            color: Colors.white, size: 14),
                       ],
                     ),
                     Row(
                       children: [
-                        Text('Rp 0', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 4),
-                        // ...
+                        Text('Rp 0',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ],
@@ -207,8 +310,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// ===============================
+  /// GRID ACTIONS
+  /// ===============================
   Widget _buildGridActions(BuildContext context) {
-    final transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
+    final transactionProvider =
+        Provider.of<TransactionProvider>(context, listen: false);
+
     final List<Map<String, dynamic>> actions = [
       {
         'icon': Icons.swap_horiz,
@@ -253,7 +361,7 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: Colors.black.withOpacity(0.05),
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
@@ -274,19 +382,239 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  /// ===============================
+  /// PROMO BANNERS AUTO SLIDE
+  /// ===============================
+  Widget _buildPromoBanners() {
+    return SizedBox(
+      height: 110,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: promoBanners.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentPromoIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          final banner = promoBanners[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: _promoItem(banner["title"]!, banner["subtitle"]!),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPromoIndicators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(promoBanners.length, (index) {
+        final bool active = _currentPromoIndex == index;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          width: active ? 18 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: active ? Colors.blue : Colors.grey[400],
+            borderRadius: BorderRadius.circular(20),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _promoItem(String title, String subtitle) {
+    return Container(
+      width: double.infinity,
+      height: 108,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.blue[700]!]),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.phone_iphone, color: Colors.white, size: 40),
+        ],
+      ),
+    );
+  }
+
+  /// ===============================
+  /// FLASH DEALS
+  /// ===============================
+  Widget _buildFlashDeals() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bolt, color: Colors.blue[600]),
+              const SizedBox(width: 4),
+              const Text(
+                'Deposito Flash Deals',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Text(
+                'Dimulai dalam ',
+                style: TextStyle(fontSize: 10, color: Colors.grey),
+              ),
+              _timerBox('41'),
+              _timerBox('17'),
+              _timerBox('56'),
+              const Icon(Icons.expand_less, color: Colors.grey),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _dealItem(
+                'Jangan Lewatkan 🔥',
+                'Penawaran terbatas dimulai pada Senin 7:00 PM',
+                '12 bulan',
+                '7% p.a.',
+                '50 kuota',
+              ),
+              const SizedBox(width: 12),
+              _dealItem(
+                'Favorit ⭐',
+                'Suku bunga tinggi untuk masa depan',
+                '6 bulan',
+                '6,5% p.a.',
+                '150 kuota',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timerBox(String value) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        value,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _dealItem(
+      String title, String sub, String tenure, String rate, String quota) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              sub,
+              style: const TextStyle(fontSize: 7, color: Colors.grey),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+            Text(tenure, style: const TextStyle(fontSize: 9)),
+            Text(
+              rate,
+              style: TextStyle(
+                color: Colors.blue[600],
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              quota,
+              style: const TextStyle(fontSize: 7, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ===============================
+  /// DIALOGS
+  /// ===============================
   void _showTopUpDialog(BuildContext context, TransactionProvider provider) {
     final controller = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Top Up Saldo'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'Jumlah Nominal', prefixText: 'Rp '),
+          decoration: const InputDecoration(
+            labelText: 'Jumlah Nominal',
+            prefixText: 'Rp ',
+          ),
           keyboardType: TextInputType.number,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(controller.text) ?? 0;
@@ -308,6 +636,7 @@ class HomeScreen extends StatelessWidget {
   void _showTransferDialog(BuildContext context, TransactionProvider provider) {
     final amountController = TextEditingController();
     final nameController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -321,17 +650,24 @@ class HomeScreen extends StatelessWidget {
             ),
             TextField(
               controller: amountController,
-              decoration: const InputDecoration(labelText: 'Jumlah Nominal', prefixText: 'Rp '),
+              decoration: const InputDecoration(
+                labelText: 'Jumlah Nominal',
+                prefixText: 'Rp ',
+              ),
               keyboardType: TextInputType.number,
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(amountController.text) ?? 0;
               final name = nameController.text;
+
               if (amount > 0 && name.isNotEmpty) {
                 if (provider.balance >= amount) {
                   provider.transfer(amount, name);
@@ -355,20 +691,28 @@ class HomeScreen extends StatelessWidget {
 
   void _showWithdrawDialog(BuildContext context, TransactionProvider provider) {
     final controller = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Tarik Tunai'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'Jumlah Nominal', prefixText: 'Rp '),
+          decoration: const InputDecoration(
+            labelText: 'Jumlah Nominal',
+            prefixText: 'Rp ',
+          ),
           keyboardType: TextInputType.number,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () {
               final amount = double.tryParse(controller.text) ?? 0;
+
               if (amount > 0) {
                 if (provider.balance >= amount) {
                   provider.withdraw(amount);
@@ -386,142 +730,6 @@ class HomeScreen extends StatelessWidget {
             child: const Text('Tarik Tunai'),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPromoBanners() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _promoItem('TOP UP\nE-WALLET', 'MENANGKAN\nTOTAL HADIAH\nMILIARAN RUPIAH'),
-          const SizedBox(width: 12),
-          _promoItem('DISKON\nSPESIAL', 'BELANJA\nLEBIH HEMAT\nHARI INI'),
-        ],
-      ),
-    );
-  }
-
-  Widget _promoItem(String title, String subtitle) {
-    return Container(
-      width: 280,
-      height: 108,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.blue[700]!]),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                Text(subtitle, style: const TextStyle(color: Colors.white, fontSize: 10)),
-              ],
-            ),
-          ),
-          const Icon(Icons.phone_iphone, color: Colors.white, size: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFlashDeals() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.blue[50],
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // Rata kiri
-      children: [
-        // Baris 1: Icon dan Judul (di atas)
-        Row(
-          children: [
-            Icon(Icons.bolt, color: Colors.blue[600]),
-            const SizedBox(width: 4),
-            const Text('Deposito Flash Deals', 
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12), // Jarak ke timer
-        
-        // Baris 2: Timer (di bawah judul)
-        Row(
-          children: [
-            const Text('Dimulai dalam ', 
-              style: TextStyle(fontSize: 10, color: Colors.grey),
-            ),
-            _timerBox('41'),
-            _timerBox('17'),
-            _timerBox('56'),
-            const Icon(Icons.expand_less, color: Colors.grey),
-          ],
-        ),
-        const SizedBox(height: 16), // Jarak ke deal items
-        
-        // Baris 3: Deal items (2 item)
-        Row(
-          children: [
-            _dealItem('Jangan Lewatkan 🔥', 'Penawaran terbatas dimulai pada Senin 7:00 PM', '12 bulan', '7% p.a.', '50 kuota'),
-            const SizedBox(width: 12),
-            _dealItem('Favorit ⭐', 'Suku bunga tinggi untuk masa depan', '6 bulan', '6,5% p.a.', '150 kuota'),
-          ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _timerBox(String value) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _dealItem(String title, String sub, String tenure, String rate, String quota) {
-  return Expanded(
-    child: Container(
-      padding: const EdgeInsets.all(8), // Kurangi padding
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // Penting!
-        children: [
-          Text(title, 
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(sub, 
-            style: const TextStyle(fontSize: 7, color: Colors.grey),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          Text(tenure, style: const TextStyle(fontSize: 9)),
-          Text(rate, 
-            style: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-          Text(quota, style: const TextStyle(fontSize: 7, color: Colors.grey)),
-          ],
-        ),
       ),
     );
   }

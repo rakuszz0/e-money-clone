@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+
 import 'screens/home_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/finance_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/qris_screen.dart';
 
+/// ===============================
+/// APP ROOT
+/// ===============================
 class EWalletApp extends StatelessWidget {
   const EWalletApp({super.key});
 
@@ -14,9 +18,8 @@ class EWalletApp extends StatelessWidget {
       title: 'E-Wallet',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: Colors.blue[600],
         useMaterial3: true,
+        primaryColor: Colors.blue,
         fontFamily: 'Roboto',
       ),
       home: const MainNavigation(),
@@ -24,6 +27,9 @@ class EWalletApp extends StatelessWidget {
   }
 }
 
+/// ===============================
+/// MAIN NAVIGATION
+/// ===============================
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -32,71 +38,144 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const HistoryScreen(),
-    const FinanceScreen(),
-    const ProfileScreen(),
+  /// REAL SCREENS
+  final List<Widget> _pages = const [
+    HomeScreen(),
+    HistoryScreen(),
+    FinanceScreen(),
+    ProfileScreen(),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _changePage(int index) {
+    setState(() => _currentIndex = index);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.blue[600],
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Beranda',
+      body: _pages[_currentIndex],
+
+      /// ===============================
+      /// QRIS FLOATING BUTTON
+      /// ===============================
+      floatingActionButton: FloatingActionButton(
+        elevation: 8,
+        backgroundColor: Colors.blue,
+        shape: const CircleBorder(),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const QRISScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.qr_code_scanner, size: 30),
+      ),
+
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.centerDocked,
+
+      /// ===============================
+      /// FINTECH NAVBAR
+      /// ===============================
+      bottomNavigationBar: _buildFintechNavbar(),
+    );
+  }
+
+  /// ===============================
+  /// FINTECH NAVBAR
+  /// ===============================
+  Widget _buildFintechNavbar() {
+    return BottomAppBar(
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 10,
+      elevation: 12,
+      child: SizedBox(
+        height: 70,
+        child: Row(
+          children: [
+            /// LEFT SIDE
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _navItem(
+                    icon: Icons.home_rounded,
+                    label: "Beranda",
+                    index: 0,
+                  ),
+                  _navItem(
+                    icon: Icons.swap_horiz_rounded,
+                    label: "Riwayat",
+                    index: 1,
+                  ),
+                ],
+              ),
+            ),
+
+            /// SPACE FOR QRIS
+            const SizedBox(width: 70),
+
+            /// RIGHT SIDE
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _navItem(
+                    icon: Icons.account_balance_wallet_rounded,
+                    label: "Keuangan",
+                    index: 2,
+                  ),
+                  _navItem(
+                    icon: Icons.person_rounded,
+                    label: "Saya",
+                    index: 3,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ===============================
+  /// NAV ITEM
+  /// ===============================
+  Widget _navItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final bool isActive = _currentIndex == index;
+
+    return InkWell(
+      onTap: () => _changePage(index),
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 26,
+            color: isActive ? Colors.blue : Colors.grey,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            activeIcon: Icon(Icons.swap_horiz),
-            label: 'Bayar/Transfer',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner, color: Colors.transparent),
-            label: 'QRIS',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
-            label: 'Deposito',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Saya',
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight:
+                  isActive ? FontWeight.w600 : FontWeight.normal,
+              color: isActive ? Colors.blue : Colors.grey,
+            ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Open QRIS Screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const QRISScreen()),
-          );
-        },
-        backgroundColor: Colors.blue[600],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: const Icon(Icons.qr_code_scanner, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
